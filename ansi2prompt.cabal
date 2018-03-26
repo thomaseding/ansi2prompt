@@ -17,5 +17,5 @@ cabal-version:       >=1.8
 executable ansi2prompt
   main-is:             Main.hs
   other-modules:       AnsiToPrompt
-  build-depends:       base >=4, monadlist ==0.0.*, mtl ==2.1.*
+  build-depends:       base >=4, monadlist ==0.0.*, mtl ==2.2.*
   hs-source-dirs:      src
