@@ -3,10 +3,7 @@ module AnsiToPrompt (
     ) where
 
 
-import Control.Monad.ListM
 import Control.Monad.State.Strict
-import Data.Char
-import System.IO
 
 
 main :: IO ()
