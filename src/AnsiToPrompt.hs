@@ -3,29 +3,50 @@ module AnsiToPrompt (
     ) where
 
 
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict as S
+import qualified Control.Monad.State.Strict (State)
+import System.Environment (getArgs)
 
 
 main :: IO ()
-main = interact (flip evalState Normal . ansiToPrompt)
+main = do
+    args <- getArgs
+    let pt = case args of
+            ["--bash"] -> Bash
+            ["--haskeline"] -> Haskeline
+            _ -> error "Expecting --bash or --haskeline argument."
+    interact $ flip S.evalState Normal . ansiToPrompt pt
 
 
-data Status = Normal | Escaping
+data PromptType
+    = Bash
+    | Haskeline
 
 
-ansiToPrompt :: String -> State Status String
-ansiToPrompt str = case str of
+data Status
+    = Normal
+    | Escaping
+
+
+ansiToPrompt :: PromptType -> String -> State Status String
+ansiToPrompt pt str = case str of
     '\ESC' : rest -> do
-        put Escaping
-        liftM ("\\[\ESC" ++) $ ansiToPrompt rest
+        S.put Escaping
+        let open = case pt of
+              Bash -> "\\[\ESC"
+              Haskeline -> "\ESC"
+        liftM (open ++) $ ansiToPrompt pt rest
     'm' : rest -> do
-        status <- get
+        status <- S.get
         case status of
-            Normal -> liftM ('m' :) $ ansiToPrompt rest
+            Normal -> liftM ('m' :) $ ansiToPrompt pt rest
             Escaping -> do
-                put Normal
-                liftM ("m\\]" ++) $ ansiToPrompt rest
-    c : rest -> liftM (c :) $ ansiToPrompt rest
+                S.put Normal
+                let close = case pt of
+                        Bash -> "\\]"
+                        Haskeline -> "\STX"
+                liftM (('m' : close) ++) $ ansiToPrompt pt rest
+    c : rest -> liftM (c :) $ ansiToPrompt pt rest
     "" -> return ""
 
 
