@@ -15,7 +15,7 @@ main = do
             ["--bash"] -> Bash
             ["--haskeline"] -> Haskeline
             _ -> error "Expecting --bash or --haskeline argument."
-    interact $ flip S.evalState Normal . ansiToPrompt pt
+    interact $ runAnsiToPrompt pt
 
 
 data PromptType
@@ -26,6 +26,10 @@ data PromptType
 data Status
     = Normal
     | Escaping
+
+
+runAnsiToPrompt :: PromptType -> String -> String
+runAnsiToPrompt pt = flip S.evalState Normal . ansiToPrompt pt
 
 
 ansiToPrompt :: PromptType -> String -> State Status String
